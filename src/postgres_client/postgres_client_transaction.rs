@@ -558,9 +558,10 @@ impl SimplePostgresClient {
         message_hash=excluded.message_hash, \
         meta=excluded.meta, \
         write_version=excluded.write_version, \
-        index=excluded.index,
+        index=excluded.index, \
         updated_on=excluded.updated_on";
 
+        info!("Preparing the transaction info upsert statement: {}", stmt);
         let stmt = client.prepare(stmt);
 
         match stmt {

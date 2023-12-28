@@ -32,6 +32,7 @@ impl TransactionSelector {
             .iter()
             .any(|key| key == "*" || key == "all");
         if select_all_transactions {
+            info!("Selecting all transactions");
             return Self {
                 mentioned_addresses: HashSet::default(),
                 select_all_transactions,

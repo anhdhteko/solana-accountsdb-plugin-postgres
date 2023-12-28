@@ -364,6 +364,7 @@ impl GeyserPlugin for GeyserPluginPostgres {
         transaction_info: ReplicaTransactionInfoVersions,
         slot: u64,
     ) -> Result<()> {
+        info!("[Notifying transaction] at slot {:?}", slot);
         match &self.client {
             None => {
                 return Err(GeyserPluginError::Custom(Box::new(
@@ -379,9 +380,18 @@ impl GeyserPlugin for GeyserPluginPostgres {
                             transaction_info.is_vote,
                             Box::new(transaction_info.transaction.message().account_keys().iter()),
                         ) {
+                            info!(
+                                "[Notifying transaction] {:?} is not selected by the transaction selector mentioned {:?}, select_all_transactions {:?}, select_all_vote_transactions {:?}, address of trans {:?}",
+                                transaction_info.transaction.signatures(),
+                                transaction_selector.mentioned_addresses,
+                                transaction_selector.select_all_transactions,
+                                transaction_selector.select_all_vote_transactions,
+                                transaction_info.transaction
+                            );
                             return Ok(());
                         }
                     } else {
+                        info!("[Notifying transaction] No transaction selector is configured, skip transaction {:?} at slot {:?}", transaction_info.transaction.signatures(), slot);
                         return Ok(());
                     }
 
@@ -393,7 +403,8 @@ impl GeyserPlugin for GeyserPluginPostgres {
                             });
                     }
                 }
-                _ => {
+                ReplicaTransactionInfoVersions::V0_0_1(transaction_info) => {
+                    error!("[Notifying transaction] Unsupported transaction info version version: {:?}", transaction_info);
                     return Err(GeyserPluginError::SlotStatusUpdateError{
                         msg: "Failed to persist the transaction info to the PostgreSQL database. Unsupported format.".to_string()
                     });
